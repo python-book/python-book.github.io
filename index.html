@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="pyodide/pyodide.js"> </script>
+    <link rel="stylesheet" href="codemirror-5.65.16/lib/codemirror.css">
+    <link rel=stylesheet href="codemirror-5.65.16/doc/docs.css">
+    <script src="codemirror-5.65.16/lib/codemirror.js"></script>
+    <script src="codemirror-5.65.16/addon/edit/matchbrackets.js"></script>
+    <script src="codemirror-5.65.16/mode/python/python.js"></script>
+  </head>
+
+  <body>
+    <p>
+      You can execute any Python code. Just enter something in the box below and
+      click the button.
+    </p>
+    <textarea id="code-editor"></textarea>
+    <button id="run" onclick="evaluatePython()" disabled>&#x25B6;
+    </button>
+    <br />
+    <br />
+    <div>Output:</div>
+    <textarea id="output" style="width: 100%;" rows="6" disabled></textarea>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        var textarea = document.getElementById("code-editor");
+        var editor = CodeMirror.fromTextArea(textarea, {
+            lineNumbers: true,
+            mode: {name: "python",
+               version: 3,
+               singleLineStringErrors: false},
+            indentUnit: 4,
+            matchBrackets: true
+        });
+        window.editor = editor;
+      });
+
+      const output = document.getElementById("output");
+
+
+      function addToOutput(s) {
+        output.value += ">>>" + "\n" + s + "\n";
+      }
+
+      output.value = "Initializing...\n";
+      // init Pyodide
+      async function main() {
+        let pyodide = await loadPyodide();
+
+        // Mount the subdirectory
+        pyodide.FS.mkdir('/workdir');
+        pyodide.FS.mount(pyodide.FS.filesystems.IDBFS, {}, '/workdir');
+        
+        // Set the current working directory to the subdirectory
+        pyodide.FS.chdir('/workdir');
+        
+        // Sync the filesystem
+        await pyodide.FS.syncfs(true,  function (err) {
+          if (err) {
+            console.error("Error syncing filesystem:", err);
+          } else {
+            document.getElementById("output").innerText = "Filesystem synced successfully";
+          }
+      });
+        
+        // Pyodide is now ready to use with the subdirectory
+
+
+
+        output.value += "Ready!\n";
+        runButton = document.getElementById("run");
+        runButton.disabled = false;
+        return pyodide;
+      }
+      let pyodideReadyPromise = main();
+
+      async function evaluatePython() {
+        let pyodide = await pyodideReadyPromise;
+        const code = window.editor.getValue();
+        console.log(code)
+        try {
+          let output = pyodide.runPython(code);
+          addToOutput(output);
+        } catch (err) {
+          addToOutput(err);
+        }
+      }
+
+
+    </script>
+    
+  </body>
+</html>
