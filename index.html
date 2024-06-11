@@ -259,7 +259,7 @@
             document.getElementById("output").innerText = "Filesystem synced successfully";
           }
         });
-        let zipResponse = await fetch("python-book-main.zip") //fetch("https://github.com/python-book/python-book/archive/refs/heads/main.zip");
+        let zipResponse = await fetch("https://github.com/python-book/python-book/archive/refs/heads/main.zip");
         let zipBinary = await zipResponse.arrayBuffer();
         pyodide.unpackArchive(zipBinary, "zip");
         
