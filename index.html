@@ -15,9 +15,20 @@
     <script src="lib/githubops.js"></script>
 
     <style>
+      .intro-container {
+        width: 100%;
+        height: 13vh;
+        max-height: 120px;
+        display: flex;
+        overflow: auto;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
       .editor-container {
         width: 100%;
-        height: 60%;
+        height: 55vh;
         /*max-height: 800px; /* maximum height for the container */
         border: 1px solid #ccc;
         overflow: hidden; /*hide overflow to control textarea size*/
@@ -28,7 +39,7 @@
       }
       .output-container {
         width: 100%;
-        height: 30%;
+        height: 30vh;
         /*max-height: 400px; /* maximum height for the container */
         border: 1px solid #ccc;
         overflow: hidden; /*hide overflow to control textarea size*/
@@ -119,18 +130,19 @@
     </style>
   </head>
 
-  <body style="overflow: hidden; padding: 2px;padding-right: 5px;">
+  <body style="overflow: auto; padding: 2px;padding-right: 5px;">
     <div id="language-switcher" style="position: absolute; top: 10px; right: 10px;">
       <button onclick="switchLanguage('en')">English</button>
       <button onclick="switchLanguage('zh')">中文</button>
     </div>
-    <h2 id="title">《Python语言程序设计入门教程》</h2>
-    <p id="intro">
-      在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按&#x25B6;执行。
-      <br>
-      可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。
-    </p>
-    <p id="warning">注意：这是一个虚拟机，虽然可以在线联系文件操作，但是关闭本网页，保存在虚拟机里的内容会被清空。</p>
+    <div class="intro-container">
+      <h2 id="title">《Python语言程序设计入门教程》</h2>
+      <p id="intro">
+        在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按&#x25B6;执行。
+        可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。
+      </p>
+      <p id="warning">注意：这是一个虚拟机，虽然可以在线联系文件操作，但是关闭本网页，保存在虚拟机里的内容会被清空。</p>
+    </div>
     <div class="editor-container" id="editor-container">
       <textarea style="height: 700px;" id="code-editor"></textarea>
       <!-- <div class="resize-handle" id="resizeHandle" style="text-align: center;">| | |</div> -->
@@ -140,8 +152,8 @@
         <button onclick="closePopup()">Close</button>
       </div>
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
-      | <button id="open-virtual-file" onclick="showFSContents()">打开虚拟机文件</button>
-      | <button id="open-book-example" onclick="showRepoContents()">浏览/打开示例</button>
+      | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
+      | <button id="open-book-example" onclick="showRepoContents()">打开本书示例</button>
       | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
       <input type="file" id="upload-file-input" accept=".py" hidden>
     </div>
@@ -343,7 +355,7 @@
           repoTitle.textContent = 'Repository Contents';
           outputTitle.textContent = 'Output Results:';
           document.getElementById('open-virtual-file').textContent = 'Open VM file';
-          document.getElementById('open-book-example').textContent = 'Open Example';
+          document.getElementById('open-book-example').textContent = 'Open Example in the Book';
           document.getElementById('upload-file-button').textContent = 'Upload local File to Virtual Machine';
         } else if (lang === 'zh') {
           title.textContent = '《Python语言程序设计入门教程》';
@@ -352,7 +364,7 @@
           repoTitle.textContent = 'Repository Contents';
           outputTitle.textContent = '输出结果:';
           document.getElementById('open-virtual-file').textContent = '打开虚拟机文件';
-          document.getElementById('open-book-example').textContent = '浏览/打开示例';
+          document.getElementById('open-book-example').textContent = '打开本书示例';
           document.getElementById('upload-file-button').textContent = '传本机文件到虚拟机';
         }
         document.documentElement.lang = lang;
