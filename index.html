@@ -1,6 +1,9 @@
 <!doctype html>
-<html>
+<html lang="zh-CN">
+  <title>Python语言程序设计入门教程</title>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset=utf-8>
         <!-- <script src="pyodide/pyodide.js"> </script> -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
     <link rel="stylesheet" href="codemirror-5.65.16/lib/codemirror.css">
@@ -8,34 +11,10 @@
     <script src="codemirror-5.65.16/lib/codemirror.js"></script>
     <script src="codemirror-5.65.16/addon/edit/matchbrackets.js"></script>
     <script src="codemirror-5.65.16/mode/python/python.js"></script>
+    <script src="lib/githubops.js"></script>
 
     <style>
-      #output {
-        width: 100%;
-        box-sizing: border-box; /* ensures padding is included in width calculation */
-        overflow-y: auto; /* adds scroll bar when content exceeds max height */
-        resize: none; /* disable manual resizing */
-      }
-      .editable {
-        width: 100%;
-        height: 98%;
-        border: 1px solid #ccc;
-        padding: 2px;
-        overflow-y: auto;
-        white-space: pre-wrap;
-      }
-      .output-container {
-        width: 100%;
-        height: 30%;
-        /*max-height: 400px; /* maximum height for the container */
-        border: 1px solid #ccc;
-        overflow: hidden; /*hide overflow to control textarea size*/
-        position: relative;
-      }
-      .red-text {
-        color: red;
-      }
-        .editor-container {
+      .editor-container {
         width: 100%;
         height: 60%;
         /*max-height: 800px; /* maximum height for the container */
@@ -45,6 +24,31 @@
       }
       .CodeMirror {
         height: 95%;
+      }
+      .output-container {
+        width: 100%;
+        height: 30%;
+        /*max-height: 400px; /* maximum height for the container */
+        border: 1px solid #ccc;
+        overflow: hidden; /*hide overflow to control textarea size*/
+        position: relative;
+      }
+      .editable {
+        width: 100%;
+        height: 98%;
+        border: 1px solid #ccc;
+        padding: 2px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+      .red-text {
+        color: red;
+      }
+      #output {
+        width: 100%;
+        box-sizing: border-box; /* ensures padding is included in width calculation */
+        overflow-y: auto; /* adds scroll bar when content exceeds max height */
+        resize: none; /* disable manual resizing */
       }
       .resize-handle {
         width: 100%;
@@ -68,7 +72,6 @@
         width: 24px;
         height: 24px;
       }
-
       #clearOutput::before, #clearOutput::after {
         content: '';
         position: absolute;
@@ -78,13 +81,39 @@
         height: 2px;
         background-color: black;
       }
-
       #clearOutput::before {
         transform: translate(-50%, -50%) rotate(45deg);
       }
-
       #clearOutput::after {
         transform: translate(-50%, -50%) rotate(-45deg);
+      }
+      #gitrepo-content-popup {
+        display: none;
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 1px solid #000;
+        background: #fff;
+        padding: 20px;
+        width: 80%;
+        height: 80%;
+        overflow-y: auto;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      #gitrepo-content-popup ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      #gitrepo-content-popup ul li {
+        margin: 5px 0;
+      }
+      #gitrepo-content-popup ul li a {
+        text-decoration: none;
+        color: #007bff;
+      }
+      #gitrepo-content-popup ul li a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
@@ -97,9 +126,14 @@
     <div class="editor-container" id="editor-container">
       <textarea style="height: 700px;" id="code-editor"></textarea>
       <!-- <div class="resize-handle" id="resizeHandle" style="text-align: center;">| | |</div> -->
-      <button id="run" onclick="evaluatePython()" disabled>&#x25B6;
-      </button>
-      |<button id="upload-file-button" onclick="uploadFileSelector()">上传文件</button>
+      <div id="gitrepo-content-popup" hidden>
+        <h2>Repository Contents</h2>
+        <ul id="gitRepofileList"></ul>
+        <button onclick="closePopup()">Close</button>
+      </div>
+      <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" disabled>&#x25B6;</button>
+      | <button id="open-example" onclick="showRepoContents()">Open Example</button>
+      | <button id="upload-file-button" onclick="uploadFileSelector()">上传文件</button>
       <input type="file" id="upload-file-input" accept=".py" hidden>
     </div>
 
@@ -109,7 +143,7 @@
       <textarea id="output" hidden></textarea>
     </div>
     <input id="user_input" hidden>
-    <script>
+    <script>      
       document.addEventListener("DOMContentLoaded", function() {
         var textarea = document.getElementById("code-editor");
         var editor = CodeMirror.fromTextArea(textarea, {
@@ -199,15 +233,6 @@
       const outputArea = document.getElementById("styledText");
       outputArea.innerHTML = "Initializing...<br>";
 
-      outputArea.addEventListener("keyup", (event) => {
-        const key = event.key;
-        inputBuffer += key;
-        inputBox = document.getElementById('user_input');
-        inputBox.value += key;
-        console.log(`output area caught keyup event:${key}, ${inputBuffer}`)
-        //stdout_func(key);
-      });
-
       // Resize functionality
       // const editorContainer = document.getElementById('editor-container');
       // const outputContainer = document.getElementById('output-container');
@@ -259,9 +284,9 @@
             document.getElementById("output").innerText = "Filesystem synced successfully";
           }
         });
-        let zipResponse = await fetch("https://github.com/python-book/python-book/archive/refs/heads/main.zip");
-        let zipBinary = await zipResponse.arrayBuffer();
-        pyodide.unpackArchive(zipBinary, "zip");
+        // let zipResponse = await fetch("https://github.com/python-book/python-book/archive/refs/heads/main.zip");
+        // let zipBinary = await zipResponse.arrayBuffer();
+        // pyodide.unpackArchive(zipBinary, "zip");
         
         // Pyodide is now ready to use with the subdirectory
         stdout_func("Ready!\n>>>");
@@ -271,9 +296,15 @@
       }
       let pyodideReadyPromise = main();
 
+      // Function to upload a file to the virtual filesystem/workdir
+      async function uploadFile(filename, fileContent) {
+        let pyodide = await pyodideReadyPromise;
+              // Write the file content to the /workdir
+              await pyodide.FS.writeFile(`/workdir/${filename}`, fileContent);
+              stdout_func(`File ${filename} loaded successfully.`);
+      }
       // Function to open the file selector
       async function uploadFileSelector() {
-        let pyodide = await pyodideReadyPromise;
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.accept = '*'; // Accept all file types
@@ -284,9 +315,7 @@
             reader.onload = async (e) => {
               const fileContent = e.target.result;
               const filename = file.name;
-              // Write the file content to the /workdir
-              await pyodide.FS.writeFile(`/workdir/${filename}`, fileContent);
-              stdout_func(`File ${filename} loaded successfully.`);
+              await uploadFile(filename, fileContent);
             };
             reader.readAsText(file);
           }
@@ -294,6 +323,13 @@
         fileInput.click();
       }
 
+
+      document.body.addEventListener("keyup", (event) => {
+        const key = event.key;
+        if (event.ctrlKey && key === "Enter") {
+          evaluatePython();
+        }
+      });
 
       async function evaluatePython() {
         let pyodide = await pyodideReadyPromise;
