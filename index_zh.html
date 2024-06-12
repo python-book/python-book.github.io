@@ -120,34 +120,29 @@
   </head>
 
   <body style="overflow: hidden; padding: 2px;padding-right: 5px;">
-    <div id="language-switcher" style="position: absolute; top: 10px; right: 10px;">
-      <button onclick="switchLanguage('en')">English</button>
-      <button onclick="switchLanguage('zh')">中文</button>
-    </div>
-    <h2 id="title">《Python语言程序设计入门教程》</h2>
-    <p id="intro">
+    <h2>《Python语言程序设计入门教程》</h2>
+    <p>
       在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按&#x25B6;执行。
       <br>
       可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。
     </p>
-    <p id="warning">注意：这是一个虚拟机，虽然可以在线联系文件操作，但是关闭本网页，保存在虚拟机里的内容会被清空。</p>
+    <p>注意：这是一个虚拟机，虽然可以在线联系文件操作，但是关闭本网页，保存在虚拟机里的内容会被清空。</p>
     <div class="editor-container" id="editor-container">
       <textarea style="height: 700px;" id="code-editor"></textarea>
       <!-- <div class="resize-handle" id="resizeHandle" style="text-align: center;">| | |</div> -->
       <div id="gitrepo-content-popup" hidden>
-        <h2 id="repo-title">Repository Contents</h2>
+        <h2>Repository Contents</h2>
         <ul id="gitRepofileList"></ul>
         <button onclick="closePopup()">Close</button>
       </div>
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
-      | <button id="open-virtual-file" onclick="showFSContents()">打开虚拟机文件</button>
-      | <button id="open-book-example" onclick="showRepoContents()">浏览/打开示例</button>
-      | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
+      | <button id="open-virtual-file" onclick="showFSContents()">Open virtual file</button>
+      | <button id="open-book-example" onclick="showRepoContents()">Open Example</button>
+      | <button id="upload-file-button" onclick="uploadFileSelector()">上传文件</button>
       <input type="file" id="upload-file-input" accept=".py" hidden>
     </div>
 
-    <div class="output-container" id="output-container">
-      <h2 id="output-title">输出结果:</h2>
+    <div class="output-container" id="output-container">输出结果:
       <button id="clearOutput" aria-label="Close" title="clear output"></button>
       <div class="editable" contenteditable="true" id="styledText" tabindex="0"></div>
       <textarea id="output" hidden></textarea>
@@ -329,45 +324,7 @@
         }
       }
 
-      function switchLanguage(lang) {
-        const title = document.getElementById('title');
-        const intro = document.getElementById('intro');
-        const warning = document.getElementById('warning');
-        const repoTitle = document.getElementById('repo-title');
-        const outputTitle = document.getElementById('output-title');
 
-        if (lang === 'en') {
-          title.textContent = 'Python Programming for Beginners';
-          intro.textContent = 'Online Python running environment, no installation required. Edit the source code in the program editing window below, then click \u25B6 to execute.';
-          warning.textContent = 'Note: This is a virtual machine. Although you can access file operations online, the content saved in the virtual machine will be cleared when you close this webpage.';
-          repoTitle.textContent = 'Repository Contents';
-          outputTitle.textContent = 'Output Results:';
-          document.getElementById('open-virtual-file').textContent = 'Open VM file';
-          document.getElementById('open-book-example').textContent = 'Open Example';
-          document.getElementById('upload-file-button').textContent = 'Upload local File to Virtual Machine';
-        } else if (lang === 'zh') {
-          title.textContent = '《Python语言程序设计入门教程》';
-          intro.textContent = '在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按 \u25B6 执行。\n可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。';
-          warning.textContent = '注意：这是一个虚拟机，虽然可以在线联系文件操作，但是关闭本网页，保存在虚拟机里的内容会被清空。';
-          repoTitle.textContent = 'Repository Contents';
-          outputTitle.textContent = '输出结果:';
-          document.getElementById('open-virtual-file').textContent = '打开虚拟机文件';
-          document.getElementById('open-book-example').textContent = '浏览/打开示例';
-          document.getElementById('upload-file-button').textContent = '传本机文件到虚拟机';
-        }
-        document.documentElement.lang = lang;
-      }
-
-      // Initial language (you can change this)
-            // Automatically detect browser language
-            function detectLanguage() {
-              const userLang = navigator.language || navigator.userLanguage;
-              const lang = userLang.substring(0, 2).toLowerCase(); // Get the first two letters of the language code
-              switchLanguage(lang);
-            }
-      
-            // Call detectLanguage() on page load
-            window.onload = detectLanguage;
     </script>
     
   </body>
