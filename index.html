@@ -17,8 +17,8 @@
     <style>
       .intro-container {
         width: 100%;
-        height: 13vh;
-        max-height: 120px;
+        height: 12vh;
+        max-height: 138px;
         display: flex;
         overflow: auto;
         flex-direction: column;
@@ -39,7 +39,7 @@
       }
       .output-container {
         width: 100%;
-        height: 30vh;
+        height: 32vh;
         /*max-height: 400px; /* maximum height for the container */
         border: 1px solid #ccc;
         overflow: hidden; /*hide overflow to control textarea size*/
@@ -141,7 +141,7 @@
         在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按&#x25B6;执行。
         可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。
       </p>
-      <p id="warning">注意：这是一个虚拟机，虽然可以在线联系文件操作，但是关闭本网页，保存在虚拟机里的内容会被清空。</p>
+      <p id="warning">注意：这是一个虚拟机，虽然可以进行文件操作，但是一旦关闭本网页，保存在虚拟机里的文件会被清空。</p>
     </div>
     <div class="editor-container" id="editor-container">
       <textarea style="height: 700px;" id="code-editor"></textarea>
@@ -356,14 +356,14 @@
           outputTitle.textContent = 'Output Results:';
           document.getElementById('open-virtual-file').textContent = 'Open VM file';
           document.getElementById('open-book-example').textContent = 'Open Example in the Book';
-          document.getElementById('upload-file-button').textContent = 'Upload local File to Virtual Machine';
+          document.getElementById('upload-file-button').textContent = 'Upload local File to VM';
         } else if (lang === 'zh') {
           title.textContent = '《Python语言程序设计入门教程》';
           intro.textContent = '在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按 \u25B6 执行。\n可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。';
-          warning.textContent = '注意：这是一个虚拟机，虽然可以在线联系文件操作，但是关闭本网页，保存在虚拟机里的内容会被清空。';
+          warning.textContent = '注意：这是一个虚拟机，虽然可以进行文件操作，但是一旦关闭本网页，保存在虚拟机里的文件会被清空。';
           repoTitle.textContent = 'Repository Contents';
           outputTitle.textContent = '输出结果:';
-          document.getElementById('open-virtual-file').textContent = '打开虚拟机文件';
+          document.getElementById('open-virtual-file').textContent = '打开临时文件';
           document.getElementById('open-book-example').textContent = '打开本书示例';
           document.getElementById('upload-file-button').textContent = '传本机文件到虚拟机';
         }
