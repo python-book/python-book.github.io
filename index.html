@@ -154,7 +154,7 @@
       #clearOutput::after {
         transform: translate(-50%, -50%) rotate(-45deg);
       }
-      #gitrepo-content-popup {
+      #file-list-popup {
         display: none;
         position: absolute;
         top: 45%;
@@ -168,19 +168,19 @@
         overflow-y: auto;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       }
-      #gitrepo-content-popup ul {
+      #file-list-popup ul {
         list-style-type: none;
-        line-height: 1.0;;
+        line-height: 1.0;
         padding: 0;
       }
-      #gitrepo-content-popup ul li {
+      #file-list-popup ul li {
         margin: 5px 0;
       }
-      #gitrepo-content-popup ul li a {
+      #file-list-popup ul li a {
         text-decoration: none;
         color: #007bff;
       }
-      #gitrepo-content-popup ul li a:hover {
+      #file-list-popup ul li a:hover {
         text-decoration: underline;
       }
     </style>
@@ -209,13 +209,17 @@
       <div class="code-editor-container" id="code-editor-container">
 
       </div>
-      <div id="gitrepo-content-popup" hidden>
-        <h2 id="repo-title">可打开文件列表</h2>
-        <ul id="gitRepofileList"></ul>
-        <button onclick="closePopup()">关闭</button>
+      <div id="file-list-popup" hidden>
+        <h3 id="repo-title" style="line-height: 1.0;">可打开文件列表</h3>
+        <div style="overflow: auto; height: 80%;">
+          <ul id="gitRepofileList"></ul>
+        </div>
+          <input type="text" id="virtual-file-name" placeholder="filename.py">
+          <button id="file-list-popup-ok" onclick="confirmPopup()"> 确定 </button>
+          <button id="file-list-popup-cancel" onclick="closePopup()"> 关闭 </button>
       </div>
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
-      | <button id="save-virtual-file" onclick="safeToFS()">保存临时文件</button>
+      | <button id="save-virtual-file" onclick="showFSContents('.', 'save')">保存临时文件</button>
       | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
       | <button id="open-book-example" onclick="showRepoContents()">打开本书示例</button>
       | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
@@ -244,6 +248,81 @@
         });
         return editor;
       }
+
+      let buttonOpenText = "打开";
+      let buttonSaveText = "保存";
+      function showPopup(mode="open") {
+        if (mode === "open") {
+          document.getElementById('file-list-popup-ok').innerText = buttonOpenText;
+        } else if (mode === "save") {
+          document.getElementById('file-list-popup-ok').innerText = buttonSaveText;
+        } else {
+          document.getElementById('file-list-popup-ok').innerText = "OK";
+        }
+        document.getElementById('file-list-popup').style.display = 'block';
+        // Add event listener for Esc keyup
+        window.editor.setOption('readOnly', true);
+        window.editor.on("keyup", (cm, event) => {
+          if (event.key === 'Escape') {
+            handleEscKey(event);
+          }
+        });
+        
+        document.addEventListener('keyup', handleEscKey);
+      }
+
+      function closePopup() {
+        document.getElementById('file-list-popup').style.display = 'none';
+        // Remove event listener
+        document.removeEventListener('keyup', handleEscKey);
+        window.editor.off("keyup", handleEscKey);
+        window.editor.setOption('readOnly', false);
+      }
+
+      let alertProvideFilename = "请输入文件名";
+      function confirmPopup() {
+        const fileName = document.getElementById('virtual-file-name').value;
+        if (fileName.trim() === '') {
+          alert(alertProvideFilename)
+          return;
+        } else {
+          if (document.getElementById('file-list-popup-ok').innerText === buttonOpenText) {
+            itemPath = document.getElementById('virtual-file-name').value;
+            console.log(`File entered: ${itemPath}`);
+            readFile(itemPath)
+            .then((fileContent)=> {
+              window.editor.setValue(fileContent);
+              window.editor.focus();
+              const tabId = window.editor.getWrapperElement().parentElement.dataset.tabId;
+              targetTab = document.querySelector(`.tab[data-tab-id="${tabId}"]`)
+              targetButton = targetTab.querySelector(`.tab-button`);
+              targetButton.textContent = itemPath;
+            })
+            .catch(error=>
+              stderr_func(error)
+            )
+          } else if (document.getElementById('file-list-popup-ok').innerText === buttonSaveText) {
+            try {
+              const fileContent = window.editor.getValue();
+              saveFile(`/workdir/${fileName}`, fileContent)
+              .then(()=>{stdout_func(`File ${fileName} loaded successfully.`);})
+              } catch (error) {
+              stderr_func(error);
+            }
+
+          }
+          closePopup();
+        }
+      }
+
+      function handleEscKey(event) {
+        console.log(`Key pressed: ${event.key}`)
+        if (event.key === 'Escape') {
+          closePopup();
+        }
+      }
+
+
 
       // Create initial CodeMirror instances
       let codeMirrors = {};
@@ -467,20 +546,32 @@
         const outputTitle = document.getElementById('output-title');
 
         if (lang === 'en') {
+          alertProvideFilename = 'Please provide a filename';
+          buttonOpenText = "Open";
+          buttonSaveText = "Save";
           title.textContent = 'Python Programming for Beginners';
           intro.textContent = 'Online Python running environment, no installation required. Edit the source code in the program editing window below, then click \u25B6 to execute.';
           warning.textContent = 'Note: This is a virtual machine. Although you can access file operations online, the content saved in the virtual machine will be cleared when you close this webpage.';
-          repoTitle.textContent = 'Repository Contents';
+          repoTitle.textContent = 'Available Files:';
           outputTitle.textContent = 'Output Results:';
+          document.getElementById('file-list-popup-ok').textContent = 'OK';
+          document.getElementById('file-list-popup-cancel').textContent = 'Cancel';
+          document.getElementById('save-virtual-file').textContent = 'Save VM file';
           document.getElementById('open-virtual-file').textContent = 'Open VM file';
           document.getElementById('open-book-example').textContent = 'Open Example in the Book';
           document.getElementById('upload-file-button').textContent = 'Upload local File to VM';
         } else if (lang === 'zh') {
+          alertProvideFilename = '请提供文件名';
+          buttonOpenText = "打开";
+          buttonSaveText = "保存";
           title.textContent = '《Python语言程序设计入门教程》';
           intro.textContent = '在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按 \u25B6 执行。\n可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。';
           warning.textContent = '注意：这是一个虚拟机，虽然可以进行文件操作，但是一旦关闭本网页，保存在虚拟机里的文件会被清空。';
-          repoTitle.textContent = 'Repository Contents';
+          repoTitle.textContent = '可打开的文件：';
           outputTitle.textContent = '输出结果:';
+          document.getElementById('file-list-popup-ok').textContent = '确认';
+          document.getElementById('file-list-popup-cancel').textContent = '取消';
+          document.getElementById('save-virtual-file').textContent = '保存临时文件';
           document.getElementById('open-virtual-file').textContent = '打开临时文件';
           document.getElementById('open-book-example').textContent = '打开本书示例';
           document.getElementById('upload-file-button').textContent = '传本机文件到虚拟机';
