@@ -509,7 +509,11 @@
             else resolve();
           });
         });
-
+        // Add the project directory to the Python path
+        await pyodide.runPythonAsync(`
+        import sys
+        sys.path.append('/workdir')
+        `);
         // Pyodide is now ready to use with the subdirectory
         stdout_func("Ready!\n>>>");
         runButton = document.getElementById("run");
