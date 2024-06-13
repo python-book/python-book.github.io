@@ -305,7 +305,7 @@
             try {
               const fileContent = window.editor.getValue();
               saveFile(`/workdir/${fileName}`, fileContent)
-              .then(()=>{stdout_func(`File ${fileName} loaded successfully.`);})
+              .then(()=>{stdout_func(`File ${fileName} saved successfully.`);})
               } catch (error) {
               stderr_func(error);
             }
@@ -497,13 +497,13 @@
         pyodide.FS.chdir('/workdir');
         
         // Sync the filesystem
-        await pyodide.FS.syncfs(true,  function (err) {
-          if (err) {
-            console.error("Error syncing filesystem:", err);
-          } else {
-            document.getElementById("output").innerText = "Filesystem synced successfully";
-          }
-        });
+        // await pyodide.FS.syncfs(true,  function (err) {
+        //   if (err) {
+        //     console.error("Error syncing filesystem:", err);
+        //   } else {
+        //     document.getElementById("output").innerText = "Filesystem synced successfully";
+        //   }
+        // });
 
         // Pyodide is now ready to use with the subdirectory
         stdout_func("Ready!\n>>>");
