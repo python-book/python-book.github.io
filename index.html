@@ -102,7 +102,7 @@
       }
       .editable {
         width: 100%;
-        height: 98%;
+        height: calc(100% - 40px);
         border: 1px solid #ccc;
         padding: 2px;
         overflow-y: auto;
@@ -170,6 +170,7 @@
       }
       #gitrepo-content-popup ul {
         list-style-type: none;
+        line-height: 1.0;;
         padding: 0;
       }
       #gitrepo-content-popup ul li {
@@ -198,38 +199,23 @@
       </p>
       <p id="warning">注意：这是一个虚拟机，虽然可以进行文件操作，但是一旦关闭本网页，保存在虚拟机里的文件会被清空。</p>
     </div>
-    <!-- <div class="editor-container" id="editor-container">
-      <textarea style="height: 700px;" id="code-editor"></textarea>
-      <div class="resize-handle" id="resizeHandle" style="text-align: center;">| | |</div>
-      <div id="gitrepo-content-popup" hidden>
-        <h2 id="repo-title">Repository Contents</h2>
-        <ul id="gitRepofileList"></ul>
-        <button onclick="closePopup()">Close</button>
-      </div>
-      <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
-      | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
-      | <button id="open-book-example" onclick="showRepoContents()">打开本书示例</button>
-      | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
-      <input type="file" id="upload-file-input" accept=".py" hidden>
-    </div> -->
     <div class="editor-container" id="editor-container">
       <div id="tab-container">
         <div id="tab-only-container">
-          <!-- <div class="tab active" data-tab-id="1"> -->
-            <!-- <button class="tab-button">Tab 1</button> -->
-          <!-- </div> -->
+
         </div>
         <button id="add-tab" onclick="addTab()">+</button>
       </div>
       <div class="code-editor-container" id="code-editor-container">
-        <!-- <div class="code-editor-wrapper" data-tab-id="1"></div> -->
+
       </div>
       <div id="gitrepo-content-popup" hidden>
-        <h2 id="repo-title">Repository Contents</h2>
+        <h2 id="repo-title">可打开文件列表</h2>
         <ul id="gitRepofileList"></ul>
-        <button onclick="closePopup()">Close</button>
+        <button onclick="closePopup()">关闭</button>
       </div>
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
+      | <button id="save-virtual-file" onclick="safeToFS()">保存临时文件</button>
       | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
       | <button id="open-book-example" onclick="showRepoContents()">打开本书示例</button>
       | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
@@ -244,20 +230,7 @@
       <textarea id="output" hidden></textarea>
     </div>
     <input id="user_input" hidden>
-    <script>      
-      // document.addEventListener("DOMContentLoaded", function() {
-      //   var textarea = document.getElementById("code-editor");
-      //   var editor = CodeMirror.fromTextArea(textarea, {
-      //       lineNumbers: true,
-      //       mode: {name: "python",
-      //          version: 3,
-      //          singleLineStringErrors: false},
-      //       indentUnit: 4,
-      //       matchBrackets: true
-      //   });
-      //   window.editor = editor;
-      // });
-
+    <script>
       // Function to create a new CodeMirror instance
       function createCodeMirror(tabId) {
         const codeEditorWrapper = document.querySelector(`.code-editor-wrapper[data-tab-id="${tabId}"]`);
@@ -274,12 +247,7 @@
 
       // Create initial CodeMirror instances
       let codeMirrors = {};
-      // const tabs = document.querySelectorAll('.tab');
-      // tabs.forEach(tab => {
-      //   const tabId = tab.dataset.tabId;
-      //   codeMirrors[tabId] = createCodeMirror(tabId);
-      // });
-      // switchTab(1); // Switch to the first tab by default
+
       addTab();
 
       // Function to switch tabs
@@ -315,12 +283,6 @@
         tabContainer.innerHTML += newTabHTML;
 
         const editorContainer = document.getElementById('code-editor-container');
-        //editorContainer.innerHTML += `<div class="code-editor-wrapper" data-tab-id="${nextTabId}"></div>`;
-        // let newEditorContainerHTML = "";
-        // for (const editorId in codeMirrors) {
-        //   newEditorContainerHTML += `<div class="code-editor-wrapper" data-tab-id="${editorId}" style="display: none;"></div>`;
-        // }
-        // editorContainer.innerHTML = newEditorContainerHTML + `<div class="code-editor-wrapper" data-tab-id="${nextTabId}"></div>`;
         editorWrapper = document.createElement('div');
         editorWrapper.classList.add('code-editor-wrapper');
         editorWrapper.setAttribute('data-tab-id', nextTabId);
@@ -374,8 +336,6 @@
 
       const stdout_func = (output_) => {
         console.log(`stdout_func is called with ${output_}`)
-        //const outputArea = document.getElementById("output");
-        //outputArea.value += output_ + "\n";
         const styledTextDiv = document.getElementById('styledText');
         const hiddenTextarea = document.getElementById('output');
         styledTextDiv.innerHTML += output_ + "<br>";
@@ -384,9 +344,6 @@
       };
 
       const stderr_func = (err) => {
-        //const outputArea = document.getElementById("output");
-        // outputArea.value += `Error: ${err}\n>>>\n`;
-        // scrollToBottom(outputArea);
         const styledTextDiv = document.getElementById('styledText');
         const hiddenTextarea = document.getElementById('output');
         styledTextDiv.innerHTML += '<span class="red-text">' + err + "</span><br>";
@@ -454,7 +411,7 @@
         });
         pyodide.setStdout(new OutputWriter());
         // Mount the subdirectory
-        pyodide.FS.mkdir('/workdir');
+        pyodide.FS.mkdirTree('/workdir');
         pyodide.FS.mount(pyodide.FS.filesystems.IDBFS, {}, '/workdir');
         
         // Set the current working directory to the subdirectory
@@ -468,10 +425,7 @@
             document.getElementById("output").innerText = "Filesystem synced successfully";
           }
         });
-        // let zipResponse = await fetch("https://github.com/python-book/python-book/archive/refs/heads/main.zip");
-        // let zipBinary = await zipResponse.arrayBuffer();
-        // pyodide.unpackArchive(zipBinary, "zip");
-        
+
         // Pyodide is now ready to use with the subdirectory
         stdout_func("Ready!\n>>>");
         runButton = document.getElementById("run");
@@ -489,9 +443,9 @@
 
       async function evaluatePython() {
         let pyodide = await pyodideReadyPromise;
-        //const code = window.editor.getValue();
-        const activeTabId = document.querySelector('.tab.active').dataset.tabId;
-        const code = codeMirrors[activeTabId].getValue();
+        const code = window.editor.getValue();
+        // const activeTabId = document.querySelector('.tab.active').dataset.tabId;
+        // const code = codeMirrors[activeTabId].getValue();
         //console.log("executing: "code)
         runButton = document.getElementById("run");
         runButton.disabled = true;
