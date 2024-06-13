@@ -44,7 +44,7 @@
       #tab-only-container {
         display: inline-flex;
         overflow-x: auto;
-        height: 40px; /* Adjust height as needed */
+        height: 38px; /* Adjust height as needed */
         border-bottom: 1px solid #ccc;
       }
       .tab {
@@ -57,7 +57,7 @@
       }
       .tab.active {
         background-color: #e0e0e0;
-        border-bottom: 2px solid #007bff;
+        border-bottom: 2px solid #0d09ef;
       }
       .tab-button {
         display: inline-flex;
@@ -75,7 +75,7 @@
       .code-editor-container {
         display: flex;;
         left: 0;
-        width: 100%;
+        width: calc(100% - 2px);
         height: calc(100% - 80px); /* Adjust height as needed */
         border: 1px solid #0d09ef;
         overflow: hidden;
@@ -84,13 +84,13 @@
         position: relative;
         left: 0;
         width: 100%;
-        height: calc(100% - 80px); /* Adjust height as needed */
-        border: 1px solid #ef0909;
+        height: 100%; /* Adjust height as needed */
         overflow: hidden;
       }
 
       .CodeMirror {
-        height: 95%;
+        width: 99%;
+        height: 99%;
       }
       .output-container {
         width: 100%;
