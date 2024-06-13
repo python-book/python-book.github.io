@@ -34,6 +34,61 @@
         overflow: hidden; /*hide overflow to control textarea size*/
         position: relative;
       }
+      #tab-container {
+        display: flex;
+        overflow-x: auto;
+        width: 100%;
+        height: 40px; /* Adjust height as needed */
+        border-bottom: 1px solid #ccc;
+      }
+      #tab-only-container {
+        display: inline-flex;
+        overflow-x: auto;
+        height: 40px; /* Adjust height as needed */
+        border-bottom: 1px solid #ccc;
+      }
+      .tab {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px;
+        background-color: #f0f0f0;
+        margin-right: 5px;
+        border-radius: 5px 10px 0 0;
+      }
+      .tab.active {
+        background-color: #e0e0e0;
+        border-bottom: 2px solid #007bff;
+      }
+      .tab-button {
+        display: inline-flex;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        margin-right: 1px;
+      }
+      #add-tab {
+        /* ... style the add tab button ... */
+        color:green;
+      }
+
+      .code-editor-container {
+        display: flex;;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 80px); /* Adjust height as needed */
+        border: 1px solid #0d09ef;
+        overflow: hidden;
+      }
+      .code-editor-wrapper {
+        position: relative;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 80px); /* Adjust height as needed */
+        border: 1px solid #ef0909;
+        overflow: hidden;
+      }
+
       .CodeMirror {
         height: 95%;
       }
@@ -143,9 +198,32 @@
       </p>
       <p id="warning">注意：这是一个虚拟机，虽然可以进行文件操作，但是一旦关闭本网页，保存在虚拟机里的文件会被清空。</p>
     </div>
-    <div class="editor-container" id="editor-container">
+    <!-- <div class="editor-container" id="editor-container">
       <textarea style="height: 700px;" id="code-editor"></textarea>
-      <!-- <div class="resize-handle" id="resizeHandle" style="text-align: center;">| | |</div> -->
+      <div class="resize-handle" id="resizeHandle" style="text-align: center;">| | |</div>
+      <div id="gitrepo-content-popup" hidden>
+        <h2 id="repo-title">Repository Contents</h2>
+        <ul id="gitRepofileList"></ul>
+        <button onclick="closePopup()">Close</button>
+      </div>
+      <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
+      | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
+      | <button id="open-book-example" onclick="showRepoContents()">打开本书示例</button>
+      | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
+      <input type="file" id="upload-file-input" accept=".py" hidden>
+    </div> -->
+    <div class="editor-container" id="editor-container">
+      <div id="tab-container">
+        <div id="tab-only-container">
+          <!-- <div class="tab active" data-tab-id="1"> -->
+            <!-- <button class="tab-button">Tab 1</button> -->
+          <!-- </div> -->
+        </div>
+        <button id="add-tab" onclick="addTab()">+</button>
+      </div>
+      <div class="code-editor-container" id="code-editor-container">
+        <!-- <div class="code-editor-wrapper" data-tab-id="1"></div> -->
+      </div>
       <div id="gitrepo-content-popup" hidden>
         <h2 id="repo-title">Repository Contents</h2>
         <ul id="gitRepofileList"></ul>
@@ -157,27 +235,111 @@
       | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
       <input type="file" id="upload-file-input" accept=".py" hidden>
     </div>
+    
 
     <div class="output-container" id="output-container">
-      <h2 id="output-title">输出结果:</h2>
+      <h3 id="output-title" style="height: 10px; vertical-align: top;">输出结果:</h3>
       <button id="clearOutput" aria-label="Close" title="clear output"></button>
       <div class="editable" contenteditable="true" id="styledText" tabindex="0"></div>
       <textarea id="output" hidden></textarea>
     </div>
     <input id="user_input" hidden>
     <script>      
-      document.addEventListener("DOMContentLoaded", function() {
-        var textarea = document.getElementById("code-editor");
-        var editor = CodeMirror.fromTextArea(textarea, {
-            lineNumbers: true,
-            mode: {name: "python",
-               version: 3,
-               singleLineStringErrors: false},
-            indentUnit: 4,
-            matchBrackets: true
+      // document.addEventListener("DOMContentLoaded", function() {
+      //   var textarea = document.getElementById("code-editor");
+      //   var editor = CodeMirror.fromTextArea(textarea, {
+      //       lineNumbers: true,
+      //       mode: {name: "python",
+      //          version: 3,
+      //          singleLineStringErrors: false},
+      //       indentUnit: 4,
+      //       matchBrackets: true
+      //   });
+      //   window.editor = editor;
+      // });
+
+      // Function to create a new CodeMirror instance
+      function createCodeMirror(tabId) {
+        const codeEditorWrapper = document.querySelector(`.code-editor-wrapper[data-tab-id="${tabId}"]`);
+        const textarea = document.createElement('textarea');
+        codeEditorWrapper.appendChild(textarea);
+        const editor = CodeMirror.fromTextArea(textarea, {
+          lineNumbers: true,
+          mode: { name: "python", version: 3, singleLineStringErrors: false },
+          indentUnit: 4,
+          matchBrackets: true
         });
-        window.editor = editor;
-      });
+        return editor;
+      }
+
+      // Create initial CodeMirror instances
+      let codeMirrors = {};
+      // const tabs = document.querySelectorAll('.tab');
+      // tabs.forEach(tab => {
+      //   const tabId = tab.dataset.tabId;
+      //   codeMirrors[tabId] = createCodeMirror(tabId);
+      // });
+      // switchTab(1); // Switch to the first tab by default
+      addTab();
+
+      // Function to switch tabs
+      function switchTab(tabId) {
+        console.log(`switchTab is called to switch to ${tabId}`);
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab) {
+          activeTab.classList.remove('active');
+        }
+        const targetTab = document.querySelector(`.tab[data-tab-id="${tabId}"]`);
+        targetTab.classList.add('active');
+
+        // Hide all code editors
+        for (const editorId in codeMirrors) {
+          console.log(`--hiding ${editorId}th editor`);
+          codeMirrors[editorId].getWrapperElement().parentElement.style.display = 'none';
+        }
+
+        // Show the code editor for the selected tab
+        codeMirrors[tabId].getWrapperElement().parentElement.style.display = 'block';
+        window.editor = codeMirrors[tabId];
+      }
+
+      // Function to add a new tab
+      function addTab() {
+        const nextTabId = Object.keys(codeMirrors).length + 1;
+        const newTabHTML = `
+          <div class="tab" data-tab-id="${nextTabId}">
+            <button class="tab-button">Tab ${nextTabId}</button>
+          </div>
+        `;
+        const tabContainer = document.getElementById('tab-only-container');
+        tabContainer.innerHTML += newTabHTML;
+
+        const editorContainer = document.getElementById('code-editor-container');
+        //editorContainer.innerHTML += `<div class="code-editor-wrapper" data-tab-id="${nextTabId}"></div>`;
+        // let newEditorContainerHTML = "";
+        // for (const editorId in codeMirrors) {
+        //   newEditorContainerHTML += `<div class="code-editor-wrapper" data-tab-id="${editorId}" style="display: none;"></div>`;
+        // }
+        // editorContainer.innerHTML = newEditorContainerHTML + `<div class="code-editor-wrapper" data-tab-id="${nextTabId}"></div>`;
+        editorWrapper = document.createElement('div');
+        editorWrapper.classList.add('code-editor-wrapper');
+        editorWrapper.setAttribute('data-tab-id', nextTabId);
+        editorContainer.append(editorWrapper);
+        // Create CodeMirror instance for the new tab
+        codeMirrors[nextTabId] = createCodeMirror(nextTabId);
+
+        // Add event listeners to tab buttons
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            const tabId = button.parentElement.dataset.tabId;
+            switchTab(tabId);
+          });
+        });
+        // Switch to the new tab
+        switchTab(nextTabId);
+      }
+
 
       function scrollToBottom(textarea) {
         textarea.scrollTop = textarea.scrollHeight;
@@ -327,7 +489,9 @@
 
       async function evaluatePython() {
         let pyodide = await pyodideReadyPromise;
-        const code = window.editor.getValue();
+        //const code = window.editor.getValue();
+        const activeTabId = document.querySelector('.tab.active').dataset.tabId;
+        const code = codeMirrors[activeTabId].getValue();
         //console.log("executing: "code)
         runButton = document.getElementById("run");
         runButton.disabled = true;
@@ -371,15 +535,15 @@
       }
 
       // Initial language (you can change this)
-            // Automatically detect browser language
-            function detectLanguage() {
-              const userLang = navigator.language || navigator.userLanguage;
-              const lang = userLang.substring(0, 2).toLowerCase(); // Get the first two letters of the language code
-              switchLanguage(lang);
-            }
-      
-            // Call detectLanguage() on page load
-            window.onload = detectLanguage;
+      // Automatically detect browser language
+      function detectLanguage() {
+        const userLang = navigator.language || navigator.userLanguage;
+        const lang = userLang.substring(0, 2).toLowerCase(); // Get the first two letters of the language code
+        switchLanguage(lang);
+      }
+
+      // Call detectLanguage() on page load
+      window.onload = detectLanguage;
     </script>
     
   </body>
