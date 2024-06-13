@@ -11,9 +11,9 @@
     <script src="codemirror-5.65.16/lib/codemirror.js"></script>
     <script src="codemirror-5.65.16/addon/edit/matchbrackets.js"></script>
     <script src="codemirror-5.65.16/mode/python/python.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="lib/fileops.js"></script>
     <script src="lib/githubops.js"></script>
-
     <style>
       .intro-container {
         width: 100%;
@@ -197,7 +197,7 @@
         在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按&#x25B6;执行。
         可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。
       </p>
-      <p id="warning">注意：这是一个虚拟机，虽然可以进行文件操作，但是一旦关闭本网页，保存在虚拟机里的文件会被清空。</p>
+      <p id="warning">注意：这是一个虚拟机，虽然可以进行文件操作，但并非保存在本机硬盘上，清理浏览器数据，可能导致保存在虚拟机里的文件被清空。</p>
     </div>
     <div class="editor-container" id="editor-container">
       <div id="tab-container">
@@ -221,8 +221,9 @@
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
       | <button id="save-virtual-file" onclick="showFSContents('.', 'save')">保存临时文件</button>
       | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
-      | <button id="open-book-example" onclick="showRepoContents()">打开本书示例</button>
-      | <button id="upload-file-button" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
+      | <button id="open-book-example" style="background-color:khaki;" onclick="showRepoContents()">打开本书示例</button>
+      | <button id="upload-file-button" style="background-color:antiquewhite;" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
+      | <button id="download-file-button" style="background-color: antiquewhite;" onclick="downloadAllFilesAsZip()">传虚拟机文件到本机(ZIP)</button>
       <input type="file" id="upload-file-input" accept=".py" hidden>
     </div>
     
@@ -304,8 +305,13 @@
           } else if (document.getElementById('file-list-popup-ok').innerText === buttonSaveText) {
             try {
               const fileContent = window.editor.getValue();
-              saveFile(`/workdir/${fileName}`, fileContent)
-              .then(()=>{stdout_func(`File ${fileName} saved successfully.`);})
+              saveFile(`${fileName}`, fileContent)
+              .then(()=>{
+                const tabId = window.editor.getWrapperElement().parentElement.dataset.tabId;
+                targetTab = document.querySelector(`.tab[data-tab-id="${tabId}"]`)
+                targetButton = targetTab.querySelector(`.tab-button`);
+                targetButton.textContent = fileName;
+                stdout_func(`File ${fileName} saved successfully.`);})
               } catch (error) {
               stderr_func(error);
             }
@@ -496,14 +502,13 @@
         // Set the current working directory to the subdirectory
         pyodide.FS.chdir('/workdir');
         
-        // Sync the filesystem
-        // await pyodide.FS.syncfs(true,  function (err) {
-        //   if (err) {
-        //     console.error("Error syncing filesystem:", err);
-        //   } else {
-        //     document.getElementById("output").innerText = "Filesystem synced successfully";
-        //   }
-        // });
+        // Synchronize from IndexedDB to in-memory FS
+        await new Promise((resolve, reject) => {
+          pyodide.FS.syncfs(true, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
 
         // Pyodide is now ready to use with the subdirectory
         stdout_func("Ready!\n>>>");
@@ -551,7 +556,7 @@
           buttonSaveText = "Save";
           title.textContent = 'Python Programming for Beginners';
           intro.textContent = 'Online Python running environment, no installation required. Edit the source code in the program editing window below, then click \u25B6 to execute.';
-          warning.textContent = 'Note: This is a virtual machine. Although you can access file operations online, the content saved in the virtual machine will be cleared when you close this webpage.';
+          warning.textContent = 'Note: This is a virtual machine. Although you can access file operations online, the content is not saved on your harddrive, clear browser cache and data might cause the saved files to be lost.';
           repoTitle.textContent = 'Available Files:';
           outputTitle.textContent = 'Output Results:';
           document.getElementById('file-list-popup-ok').textContent = 'OK';
@@ -560,13 +565,14 @@
           document.getElementById('open-virtual-file').textContent = 'Open VM file';
           document.getElementById('open-book-example').textContent = 'Open Example in the Book';
           document.getElementById('upload-file-button').textContent = 'Upload local File to VM';
+          document.getElementById('download-file-button').textContent = 'Download VM Files to local(as ZIP)';
         } else if (lang === 'zh') {
           alertProvideFilename = '请提供文件名';
           buttonOpenText = "打开";
           buttonSaveText = "保存";
           title.textContent = '《Python语言程序设计入门教程》';
           intro.textContent = '在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按 \u25B6 执行。\n可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。';
-          warning.textContent = '注意：这是一个虚拟机，虽然可以进行文件操作，但是一旦关闭本网页，保存在虚拟机里的文件会被清空。';
+          warning.textContent = '注意：这是一个虚拟机，虽然可以进行文件操作，但并非保存在本机硬盘上，清理浏览器数据，可能导致保存在虚拟机里的文件被清空。';
           repoTitle.textContent = '可打开的文件：';
           outputTitle.textContent = '输出结果:';
           document.getElementById('file-list-popup-ok').textContent = '确认';
@@ -575,6 +581,7 @@
           document.getElementById('open-virtual-file').textContent = '打开临时文件';
           document.getElementById('open-book-example').textContent = '打开本书示例';
           document.getElementById('upload-file-button').textContent = '传本机文件到虚拟机';
+          document.getElementById('download-file-button').textContent = '传虚拟机文件到本机(ZIP)';
         }
         document.documentElement.lang = lang;
       }
