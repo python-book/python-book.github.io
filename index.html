@@ -142,7 +142,7 @@
         width: 24px;
         height: 24px;
       }
-      #clearOutput::before, #clearOutput::after {
+      /* #clearOutput::before, #clearOutput::after {
         content: '';
         position: absolute;
         top: 50%;
@@ -150,13 +150,13 @@
         width: 16px;
         height: 2px;
         background-color: black;
-      }
+      } 
       #clearOutput::before {
         transform: translate(-50%, -50%) rotate(45deg);
       }
       #clearOutput::after {
         transform: translate(-50%, -50%) rotate(-45deg);
-      }
+      } */
       #file-list-popup {
         display: none;
         position: absolute;
@@ -271,8 +271,9 @@
 
     <div class="output-container" id="output-container">
       <h3 id="output-title" style="height: 10px; vertical-align: top;">输出结果:</h3>
-      <button id="clearOutput" aria-label="Close" title="clear output"></button>
-      <div class="editable" contenteditable="true" id="styledText" tabindex="0"></div>
+      <!-- <button id="clearOutput" aria-label="Close" title="clear output"></button> -->
+      <button id="clearOutput" aria-label="Close" title="clear output">&#x1F9F9;</button>
+      <div class="editable" contenteditable="true" id="styledText" tabindex="0" style="font-family: Consolas, Monaco, 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', monospace;"></div>
       <textarea id="output" hidden></textarea>
     </div>
     <input id="user_input" hidden>
