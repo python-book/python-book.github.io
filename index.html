@@ -256,8 +256,8 @@
           <ul id="gitRepofileList"></ul>
         </div>
           <input type="text" id="virtual-file-name" placeholder="filename.py">
-          <button id="file-list-popup-ok" onclick="confirmPopup()"> 确定 </button>
-          <button id="file-list-popup-cancel" onclick="closePopup()"> 关闭 </button>
+          <button id="file-list-popup-ok" onclick="confirmFileListPopup()"> 确定 </button>
+          <button id="file-list-popup-cancel" onclick="closeFileListPopup()"> 关闭 </button>
       </div>
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
       | <button id="save-virtual-file" onclick="showFSContents('.', 'save')">保存临时文件</button>
@@ -313,7 +313,7 @@
         document.addEventListener('keyup', handleEscKey);
       }
 
-      function closePopup() {
+      function closeFileListPopup() {
         document.getElementById('file-list-popup').style.display = 'none';
         // Remove event listener
         document.removeEventListener('keyup', handleEscKey);
@@ -322,7 +322,7 @@
       }
 
       let alertProvideFilename = "请输入文件名";
-      function confirmPopup() {
+      function confirmFileListPopup() {
         const fileName = document.getElementById('virtual-file-name').value;
         if (fileName.trim() === '') {
           alert(alertProvideFilename)
@@ -358,14 +358,14 @@
             }
 
           }
-          closePopup();
+          closeFileListPopup();
         }
       }
 
       function handleEscKey(event) {
         console.log(`Key pressed: ${event.key}`)
         if (event.key === 'Escape') {
-          closePopup();
+          closeFileListPopup();
         }
       }
 
@@ -570,16 +570,30 @@
         }
       });
 
+      function sanitizePythonIdentifier(fileName) {
+        const validCharsRegex = /[a-zA-Z0-9_]/g;
+        const sanitizedName = fileName.match(validCharsRegex)?.join('') || '';
+
+        // Ensure the sanitized name starts with a valid character
+        if (!/^[a-zA-Z_]/.test(sanitizedName)) {
+          return '_' + sanitizedName; 
+        }
+
+        return sanitizedName;
+      }
       async function evaluatePython() {
         let pyodide = await pyodideReadyPromise;
         const code = window.editor.getValue();
-        // const activeTabId = document.querySelector('.tab.active').dataset.tabId;
-        // const code = codeMirrors[activeTabId].getValue();
-        //console.log("executing: "code)
+        const tabId = window.editor.getWrapperElement().parentElement.dataset.tabId;
+        const targetTab = document.querySelector(`.tab[data-tab-id="${tabId}"]`)
+        const targetButton = targetTab.querySelector(`.tab-button`);
+        const fileName = sanitizePythonIdentifier(targetButton.textContent.replace(/\.py$/, '')) + ".py";
+        const globals = pyodide.toPy({__file__: fileName})
+        pyodide.globals.set("__file__", fileName);
         runButton = document.getElementById("run");
         runButton.disabled = true;
         try {
-          let output = pyodide.runPython(code);
+          let output = pyodide.runPython(code, {filename: fileName});
           stdout_func(">>>");
           runButton.disabled = false;
         } catch (err) {
