@@ -13,7 +13,7 @@
     <script src="codemirror-5.65.16/mode/python/python.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="lib/fileops.js"></script>
-    <script src="lib/githubops.js"></script>
+    <!-- <script src="lib/githubops.js"></script> -->
     <style>
       .intro-container {
         width: 100%;
@@ -253,7 +253,7 @@
       <div id="file-list-popup" hidden>
         <h3 id="repo-title" style="line-height: 1.0;">可打开文件列表</h3>
         <div style="overflow: auto; height: 80%;">
-          <ul id="gitRepofileList"></ul>
+          <ul id="fileList"></ul>
         </div>
           <input type="text" id="virtual-file-name" placeholder="filename.py">
           <button id="file-list-popup-ok" onclick="confirmFileListPopup()"> 确定 </button>
@@ -262,7 +262,7 @@
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
       | <button id="save-virtual-file" onclick="showFSContents('.', 'save')">保存临时文件</button>
       | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
-      | <button id="open-book-example" style="background-color:khaki;" onclick="showRepoContents()">打开本书示例</button>
+      | <button id="open-book-example" style="background-color:khaki;" onclick="fetchAndExtractZip()">下载本书示例</button>
       | <button id="upload-file-button" style="background-color:antiquewhite;" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
       | <button id="download-file-button" style="background-color: antiquewhite;" onclick="downloadAllFilesAsZip()">传虚拟机文件到本机(ZIP)</button>
       <input type="file" id="upload-file-input" accept=".py" hidden>
@@ -623,7 +623,7 @@
           document.getElementById('file-list-popup-cancel').textContent = 'Cancel';
           document.getElementById('save-virtual-file').textContent = 'Save VM file';
           document.getElementById('open-virtual-file').textContent = 'Open VM file';
-          document.getElementById('open-book-example').textContent = 'Open Example in the Book';
+          document.getElementById('open-book-example').textContent = 'Download Book Example';
           document.getElementById('upload-file-button').textContent = 'Upload local File to VM';
           document.getElementById('download-file-button').textContent = 'Download VM Files to local(as ZIP)';
         } else if (lang === 'zh') {
@@ -639,7 +639,7 @@
           document.getElementById('file-list-popup-cancel').textContent = '取消';
           document.getElementById('save-virtual-file').textContent = '保存临时文件';
           document.getElementById('open-virtual-file').textContent = '打开临时文件';
-          document.getElementById('open-book-example').textContent = '打开本书示例';
+          document.getElementById('open-book-example').textContent = '下载本书示例';
           document.getElementById('upload-file-button').textContent = '传本机文件到虚拟机';
           document.getElementById('download-file-button').textContent = '传虚拟机文件到本机(ZIP)';
         }
