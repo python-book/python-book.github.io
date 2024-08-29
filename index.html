@@ -229,8 +229,10 @@
 
   <body style="overflow: auto; padding: 2px;padding-right: 5px;">
     <div id="language-switcher" style="position: absolute; top: 10px; right: 10px;">
-      <button onclick="switchLanguage('en')">English</button>
-      <button onclick="switchLanguage('zh')">中文</button>
+      <select id="language-select" onchange="switchLanguage(this.value)">
+        <option value="en">English</option>
+        <option value="zh" selected>中文</option>
+        </select>
     </div>
     <div class="intro-container">
       <h2 id="title">《Python语言程序设计入门教程》</h2>
@@ -369,8 +371,6 @@
           closeFileListPopup();
         }
       }
-
-
 
       // Create initial CodeMirror instances
       let codeMirrors = {};
@@ -604,49 +604,42 @@
       }
 
       function switchLanguage(lang) {
-        const title = document.getElementById('title');
-        const intro = document.getElementById('intro');
-        const warning = document.getElementById('warning');
-        const repoTitle = document.getElementById('repo-title');
-        const outputTitle = document.getElementById('output-title');
+        const translations = {'title': {'en': 'Python Programming for Beginners', 'zh': '《Python语言程序设计入门教程》'},
+                             'intro': {'en': 'Online Python running environment, no installation required. Edit the source code in the program editing window below, then click \u25B6 to execute.', 
+                                       'zh': '在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按 \u25B6 执行。\n可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。'},
+                             'warning': {'en': 'Note: This is a virtual machine. Although you can access file operations online, the content is not saved on your harddrive, clear browser cache and data might cause the saved files to be lost.',
+                                         'zh': '注意：这是一个虚拟机，虽然可以进行文件操作，但并非保存在本机硬盘上，清理浏览器数据，可能导致保存在虚拟机里的文件被清空。'},
+                             'repo-title': {'en': 'Available Files:', 'zh': '可打开的文件：'},
+                             'output-title': {'en': 'Output Results:', 'zh': '输出结果:'},
+                             'file-list-popup-ok' : {'en': 'OK', 'zh': '确认'},
+                             'file-list-popup-cancel' : {'en': 'Cancel', 'zh': '取消'},
+                             'save-virtual-file' : {'en': 'Save VM file', 'zh': '保存临时文件'},
+                             'open-virtual-file' : {'en': 'Open VM file', 'zh': '打开临时文件'},
+                             'open-book-example' : {'en': 'Download Book Example', 'zh': '下载本书示例'},
+                             'upload-file-button' : {'en': 'Upload local File to VM', 'zh': '传本机文件到虚拟机'},
+                             'download-file-button' : {'en': 'Download VM Files to local(ZIP)', 'zh': '传虚拟机文件到本机(ZIP)'},
+                             }
 
+        Object.keys(translations).forEach(id => {
+          const element = document.getElementById(id);
+          if (element) {
+              element.textContent = translations[id][lang];
+          }
+        });
+        langSelector = document.getElementById("language-select");
+        langSelector.value = lang;
         if (lang === 'en') {
           alertProvideFilename = 'Please provide a filename';
           buttonOpenText = "Open";
           buttonSaveText = "Save";
-          title.textContent = 'Python Programming for Beginners';
-          intro.textContent = 'Online Python running environment, no installation required. Edit the source code in the program editing window below, then click \u25B6 to execute.';
-          warning.textContent = 'Note: This is a virtual machine. Although you can access file operations online, the content is not saved on your harddrive, clear browser cache and data might cause the saved files to be lost.';
-          repoTitle.textContent = 'Available Files:';
-          outputTitle.textContent = 'Output Results:';
-          document.getElementById('file-list-popup-ok').textContent = 'OK';
-          document.getElementById('file-list-popup-cancel').textContent = 'Cancel';
-          document.getElementById('save-virtual-file').textContent = 'Save VM file';
-          document.getElementById('open-virtual-file').textContent = 'Open VM file';
-          document.getElementById('open-book-example').textContent = 'Download Book Example';
-          document.getElementById('upload-file-button').textContent = 'Upload local File to VM';
-          document.getElementById('download-file-button').textContent = 'Download VM Files to local(as ZIP)';
         } else if (lang === 'zh') {
           alertProvideFilename = '请提供文件名';
           buttonOpenText = "打开";
           buttonSaveText = "保存";
-          title.textContent = '《Python语言程序设计入门教程》';
-          intro.textContent = '在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按 \u25B6 执行。\n可以用“打开本书示例”按钮直接浏览，打开本书提供的示例。';
-          warning.textContent = '注意：这是一个虚拟机，虽然可以进行文件操作，但并非保存在本机硬盘上，清理浏览器数据，可能导致保存在虚拟机里的文件被清空。';
-          repoTitle.textContent = '可打开的文件：';
-          outputTitle.textContent = '输出结果:';
-          document.getElementById('file-list-popup-ok').textContent = '确认';
-          document.getElementById('file-list-popup-cancel').textContent = '取消';
-          document.getElementById('save-virtual-file').textContent = '保存临时文件';
-          document.getElementById('open-virtual-file').textContent = '打开临时文件';
-          document.getElementById('open-book-example').textContent = '下载本书示例';
-          document.getElementById('upload-file-button').textContent = '传本机文件到虚拟机';
-          document.getElementById('download-file-button').textContent = '传虚拟机文件到本机(ZIP)';
         }
         document.documentElement.lang = lang;
       }
 
-      // Initial language (you can change this)
       // Automatically detect browser language
       function detectLanguage() {
         const userLang = navigator.language || navigator.userLanguage;
