@@ -1,6 +1,7 @@
 <!doctype html>
-<html lang="zh-CN">
-  <title>Python语言程序设计入门教程</title>
+<html lang="en-US">
+  <meta charset="utf-8">
+  <title>Practical Python Programming</title>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset=utf-8>
@@ -273,7 +274,6 @@
 
     <div class="output-container" id="output-container">
       <h3 id="output-title" style="height: 10px; vertical-align: top;">输出结果:</h3>
-      <!-- <button id="clearOutput" aria-label="Close" title="clear output"></button> -->
       <button id="clearOutput" aria-label="Close" title="clear output">&#x1F9F9;</button>
       <div class="editable" contenteditable="true" id="styledText" tabindex="0" style="font-family: Consolas, Monaco, 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', monospace;"></div>
       <textarea id="output" hidden></textarea>
@@ -629,10 +629,12 @@
         langSelector = document.getElementById("language-select");
         langSelector.value = lang;
         if (lang === 'en') {
+          document.title = "Practical Python Programming"; 
           alertProvideFilename = 'Please provide a filename';
           buttonOpenText = "Open";
           buttonSaveText = "Save";
         } else if (lang === 'zh') {
+          document.title = "Python语言程序设计入门教程"; 
           alertProvideFilename = '请提供文件名';
           buttonOpenText = "打开";
           buttonSaveText = "保存";
