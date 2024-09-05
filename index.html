@@ -18,8 +18,8 @@
     <style>
       .intro-container {
         width: 100%;
-        height: 12vh;
-        max-height: 138px;
+        /* height: 12vh;
+        max-height: 138px; */
         display: flex;
         overflow: auto;
         flex-direction: column;
@@ -123,14 +123,27 @@
       }
       .resize-handle {
         width: 100%;
-        height: 10px;
-        background-color: #6f6b6b;
+        height: 5px;
+        background-color: transparent; /* Make the background transparent */
         cursor: ns-resize;
-        position: absolute;
+        position: relative;
         bottom: 0;
         left: 0;
         text-align: center;
-        align-content:center;
+        align-content: center;
+        z-index: 1;
+      }
+      .resize-handle::before { /* Add a pseudo-element for the visual cue */
+        content: "";
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90px;
+        height: 4px;
+        background-color: #0091ff; /* Use a visible color */
+        border-radius: 2px; /* Make it slightly rounded */
+        z-index: 1;
       }
       #clearOutput {
         position: absolute;
@@ -235,7 +248,7 @@
         <option value="zh" selected>中文</option>
         </select>
     </div>
-    <div class="intro-container">
+    <div class="intro-container" id="intro-container">
       <h2 id="title">《Python语言程序设计入门教程》</h2>
       <p id="intro">
         在线Python运行环境，无需安装，直接在以下程序编辑窗编辑源代码，然后按&#x25B6;执行。
@@ -243,6 +256,9 @@
       </p>
       <p id="warning">注意：这是一个虚拟机，虽然可以进行文件操作，但并非保存在本机硬盘上，清理浏览器数据，可能导致保存在虚拟机里的文件被清空。</p>
     </div>
+
+    <div class="resize-handle" id="resizeIntroHandle"></div>
+
     <div class="editor-container" id="editor-container">
       <div id="tab-container">
         <div id="tab-only-container">
@@ -271,7 +287,8 @@
       <input type="file" id="upload-file-input" accept=".py" hidden>
     </div>
     
-
+    <div class="resize-handle" id="resizeEditorHandle"></div>
+    
     <div class="output-container" id="output-container">
       <h3 id="output-title" style="height: 10px; vertical-align: top;">OUTPUT:</h3>
       <!-- <button id="clearOutput" aria-label="Close" title="clear output"></button> -->
@@ -502,32 +519,48 @@
       const outputArea = document.getElementById("styledText");
       outputArea.innerHTML = "Initializing...<br>";
 
-      // Resize functionality
-      // const editorContainer = document.getElementById('editor-container');
-      // const outputContainer = document.getElementById('output-container');
-      // const resizeHandle = document.getElementById('resizeHandle');
-      // let isResizing = false;
+      //Resize functionality
+      const IntroContainer = document.getElementById('intro-container');
+      const editorContainer = document.getElementById('editor-container');
+      const outputContainer = document.getElementById('output-container');
+      // resize Intro panel
+      const resizeIntroHandle = document.getElementById('resizeIntroHandle');
+      let isIntroResizing = false;
+      resizeIntroHandle.addEventListener('mousedown', function(e) {
+        isIntroResizing = true;
+        document.body.style.cursor = 'ns-resize';
+        e.preventDefault(); // prevent text selection
+      });
+      // resize Editor panel
+      const resizeEditorHandle = document.getElementById('resizeEditorHandle');
+      let isEditorResizing = false;
 
-      // resizeHandle.addEventListener('mousedown', function(e) {
-      //   isResizing = true;
-      //   document.body.style.cursor = 'ns-resize';
-      //   e.preventDefault(); // prevent text selection
-      // });
+      resizeEditorHandle.addEventListener('mousedown', function(e) {
+        isEditorResizing = true;
+        document.body.style.cursor = 'ns-resize';
+        e.preventDefault(); // prevent text selection
+      });
 
-      // document.addEventListener('mousemove', function(e) {
-      //   if (!isResizing) return;
-      //   const newHeight = e.clientY - editorContainer.getBoundingClientRect().top;
-      //   editorContainer.style.height = `${newHeight}px`;
-      //   adjustTextareaHeight(document.getElementById('code-editor'));
-      //   adjustTextareaHeight(document.getElementById('output'));
-      // });
+      document.addEventListener('mousemove', function(e) {
+        if (isEditorResizing) {
+          const newHeight = e.clientY - editorContainer.getBoundingClientRect().top;
+          editorContainer.style.height = `${newHeight}px`;
+          adjustTextareaHeight(document.getElementById('code-editor'));
+          adjustTextareaHeight(document.getElementById('output'));
+          }
+        if (isIntroResizing) {
+          const newHeight = e.clientY - IntroContainer.getBoundingClientRect().top;
+          IntroContainer.style.height = `${newHeight}px`;
+        }
+      });
 
-      // document.addEventListener('mouseup', function(e) {
-      //   if (isResizing) {
-      //     isResizing = false;
-      //     document.body.style.cursor = 'default';
-      //   }
-      // });
+      document.addEventListener('mouseup', function(e) {
+        if (isIntroResizing || isEditorResizing) {
+          isIntroResizing = false;
+          isEditorResizing = false;
+          document.body.style.cursor = 'default';
+        }
+      });
 
       // init Pyodide
       async function main() {
