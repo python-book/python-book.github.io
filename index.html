@@ -474,7 +474,7 @@
       const stderr_func = (err) => {
         const styledTextDiv = document.getElementById('styledText');
         const hiddenTextarea = document.getElementById('output');
-        styledTextDiv.innerHTML += '<span class="red-text">' + err.replace('<', '&lt;').replace('>', '&gt;')  + "</span><br>";
+        styledTextDiv.innerHTML += '<span class="red-text">' + err.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "</span><br>";
         hiddenTextarea.value += err + "\n";
         scrollToBottom(styledTextDiv);
       };
