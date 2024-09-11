@@ -279,8 +279,8 @@
           <button id="file-list-popup-cancel" onclick="closeFileListPopup()"> 关闭 </button>
       </div>
       <button id="run" onclick="evaluatePython()" title="Run(Ctrl+Enter)" style="color: green;" disabled>&#x25B6;</button>
-      | <button id="save-virtual-file" onclick="showFSContents('.', 'save')">保存临时文件</button>
-      | <button id="open-virtual-file" onclick="showFSContents()">打开临时文件</button>
+      | <button id="save-virtual-file" onclick="showPopup('save')">保存临时文件</button>
+      | <button id="open-virtual-file" onclick="showPopup('open')">打开临时文件</button>
       | <button id="open-book-example" style="background-color:khaki;" onclick="fetchAndExtractZip()">下载本书示例</button>
       | <button id="upload-file-button" style="background-color:antiquewhite;" onclick="uploadFileSelector()">传本机文件到虚拟机</button>
       | <button id="download-file-button" style="background-color: antiquewhite;" onclick="downloadAllFilesAsZip()">传虚拟机文件到本机(ZIP)</button>
@@ -324,7 +324,7 @@
         } else {
           document.getElementById('file-list-popup-ok').innerText = "OK";
         }
-        showFSContens(filePopup.dataset.currentDir, mode);
+        showFSContents(filePopup.dataset.currentDir, mode);
         document.getElementById('file-list-popup').style.display = 'block';
         // Add event listener for Esc keyup
         window.editor.setOption('readOnly', true);
