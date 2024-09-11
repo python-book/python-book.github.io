@@ -269,7 +269,7 @@
       <div class="code-editor-container" id="code-editor-container">
 
       </div>
-      <div id="file-list-popup" hidden>
+      <div id="file-list-popup" data-current-dir="." hidden>
         <h3 id="repo-title" style="line-height: 1.0;">可打开文件列表</h3>
         <div style="overflow: auto; height: 80%;">
           <ul id="fileList"></ul>
@@ -315,6 +315,8 @@
       let buttonOpenText = "打开";
       let buttonSaveText = "保存";
       function showPopup(mode="open") {
+        const filePopup = document.getElementById('file-list-popup');
+        const fileList = document.getElementById('fileList');
         if (mode === "open") {
           document.getElementById('file-list-popup-ok').innerText = buttonOpenText;
         } else if (mode === "save") {
@@ -322,6 +324,7 @@
         } else {
           document.getElementById('file-list-popup-ok').innerText = "OK";
         }
+        showFSContens(filePopup.dataset.currentDir, mode);
         document.getElementById('file-list-popup').style.display = 'block';
         // Add event listener for Esc keyup
         window.editor.setOption('readOnly', true);
@@ -344,6 +347,7 @@
 
       let alertProvideFilename = "请输入文件名";
       function confirmFileListPopup() {
+        const filePopup = document.getElementById('file-list-popup');
         const fileName = document.getElementById('virtual-file-name').value;
         if (fileName.trim() === '') {
           alert(alertProvideFilename)
@@ -377,8 +381,9 @@
               } catch (error) {
               stderr_func(error);
             }
-
           }
+          const itemDir = itemPath.substring(0, itemPath.lastIndexOf('/'));
+          filePopup.setAttribute('data-current-dir', itemDir);
           closeFileListPopup();
         }
       }
